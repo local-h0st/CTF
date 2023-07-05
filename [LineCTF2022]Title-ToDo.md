@@ -68,7 +68,7 @@ def upload_image():
 
 因此抓包改img_url前缀必须是`/static/image/`才能被db顺利存储，后续访问才能找到这条记录
 
-不会利用，Google一下。
+不会利用，Google一下。两份wp：[1](https://blog.maple3142.net/2022/03/27/line-ctf-2022-writeups/#title-todo) [2](https://gist.github.com/jorgectf/993d02bdadb5313f48cf1dc92a7af87e)
 
 注意到app.py中的Content-Security-Policy，图片不允许外链。
 
@@ -76,5 +76,5 @@ xsleaks放几个链接：[1](https://www.scuctf.com/ctfwiki/web/9.xss/xsleaks/) 
 
 Scroll-To-Text Fragment：就是文本高亮，但是STTF有xsleaks侧信道攻击。别人的wp还用到了img标签[lazy-loading](https://www.zhangxinxu.com/wordpress/2019/09/native-img-loading-lazy/)属性。
 
-
+看第一个wp吧，另外有crawler是bot会不断以admin身份访问页面的。
 
