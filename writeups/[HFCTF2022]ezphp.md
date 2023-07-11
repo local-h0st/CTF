@@ -60,6 +60,8 @@ int main() {
 }
 ```
 当目录下没有test.txt时，测试结果如图：
-![Image text](https://github.com/local-h0st/CTF/blob/30ede03357edb15579ffb06cb3adb9d341bf3576/writeups/pics/test_unlink_01.png)
+![nil](https://github.com/local-h0st/CTF/blob/30ede03357edb15579ffb06cb3adb9d341bf3576/writeups/pics/test_unlink_01.png)
 
+如果预先存在test.txt则不会存在/proc/pid/fd/3这个软链接，且a.out本身输出buff为空，如图：
+![nil](https://github.com/local-h0st/CTF/blob/main/writeups/pics/test_unlink_02.png)
 我发现，在getchar挡住，close未执行时，目录下test.txt就已经消失不见了。
