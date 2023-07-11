@@ -59,7 +59,7 @@ int main() {
     return 0;
 }
 ```
-当目录下没有test.txt时，测试结果如图：
+当目录下没有test.txt时，测试结果如图，甚至可以直接cat 3读出内容：
 ![nil](https://github.com/local-h0st/CTF/blob/30ede03357edb15579ffb06cb3adb9d341bf3576/writeups/pics/test_unlink_01.png)
 
 如果预先存在test.txt则不会存在/proc/pid/fd/3这个软链接，且a.out本身输出buff为空，如图：
